@@ -1,2 +1,2 @@
-# Gaussian Process
-this repository contains code for the Gaussian Process project 
+# bigp
+this repository contains code for the Bayesian Inference and Gaussian Process project 

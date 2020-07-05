@@ -185,10 +185,3 @@ def linearRegression(xtrain, ytrain, xtest, ytest, x, y):
     plotFinal(years, countryQuantity, yearsTrain, countryQuantityTrain, yearsTest, countryQuantityTest, yearsPredict, countryQuantityPredictLR, 'Life Expectancy',0,regression_type='Linear')
     return countryQuantityPredictLR
 
-
-    
-    
-    
-    
-        
-

@@ -8,19 +8,19 @@ from sklearn import datasets, linear_model
 from sklearn.metrics import mean_squared_error, r2_score
 
 
-#extract dataframes corresponding to countries
+# extract dataframes corresponding to countries
 def countryDF(country, dataframe):
     countryData = dataframe[dataframe['Country'] == country]
     return countryData
 
 
-#extract columns
+# extract single column
 def columnExtractor(dataframe, columnName):
     values = dataframe[columnName]
     return values 
 
 
-#extract variable number of columns 
+# extract variable number of columns 
 def variableColumnExtractor(dataframe, headers):
     if len(headers) > 0 and type(headers) == list:
         featureDF = dataframe[headers]
@@ -61,6 +61,7 @@ def plotFinal(years, countryQuantity, yearsTrain, countryQuantityTrain, yearsTes
     plt.legend()
 
 
+# error calculation between predicted value and ground truth
 def errorComputation(countryDF, countryQuantityPredict, quantity,regression_type):
     #countryQuantityPredict = countryQuantityPredict[::-1]
     countryQuantityActual = columnExtractor(countryDF,str(quantity)).tolist()
@@ -74,7 +75,7 @@ def errorComputation(countryDF, countryQuantityPredict, quantity,regression_type
 #def errorRMSE(countryDF, countryQuantityPredict, quantity,regression_type):
     
 
-#error calculation between predicted value and ground truth
+# plotting error values as computed by errorComputation() 
 def errorPlot(qty1, error, xlabel, ylabel,regression_type,color):
     
     plt.plot(qty1[::-1], np.ones((len(qty1),1))*np.mean(error.T), '--', c=color, label=regression_type+' mean')
@@ -86,7 +87,7 @@ def errorPlot(qty1, error, xlabel, ylabel,regression_type,color):
     plt.legend()
 
 
-#matrix randomizer
+# matrix randomizer
 def randomizer(countryQuantity, years, split):
     countryQuantity = countryQuantity.tolist()
     years = years.tolist()
@@ -124,7 +125,6 @@ def randomizer(countryQuantity, years, split):
 #################GAUSSIAN REGRESSION#################
 # convention followed in relation to scikit documentation 
 
-#def linearRegression(xtrain, ytrain, xtest, ytest, x, y):
 def gaussianRegression(xtrain, ytrain, xtest, ytest, x, y):
     # Instantiate a Gaussian Process model
     lengthScale = np.random.randint(50)

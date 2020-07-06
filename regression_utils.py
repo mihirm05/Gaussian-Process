@@ -67,7 +67,10 @@ def errorComputation(countryDF, countryQuantityPredict, quantity,regression_type
     countryQuantityActual = countryQuantityActual[::-1]
     print(regression_type,'Prediction \n', countryQuantityPredict.T)
     print('Actual \n', countryQuantityActual)
-    error = (np.absolute((countryQuantityPredict.T - countryQuantityActual))/countryQuantityActual)*100
+    error = np.sqrt(mean_squared_error(countryQuantityPredict, countryQuantityActual))
+    print('hi')
+    print(error)
+    
     return error
 
 

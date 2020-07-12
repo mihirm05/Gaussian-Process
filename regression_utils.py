@@ -38,15 +38,15 @@ def plotQuantities(qty1, qty2, xlabel, ylabel, label, title):
 
 
 # Plot the function, the prediction and the 95% confidence interval based on the MSE
-def plotFinal(years, countryQuantity, yearsTrain, countryQuantityTrain, yearsTest, countryQuantityTest, yearsPredict, countryQuantityPredict, ylabel, sigma, regression_type):
+def plotFinal(countryQuantity2, countryQuantity, countryQuantity2Train, countryQuantityTrain, countryQuantity2Test, countryQuantityTest, countryQuantity2Predict, countryQuantityPredict, ylabel, xlabel, sigma, regression_type):
     plt.figure()
     
     #actual data 
-    plt.scatter(years, countryQuantity,label='Observations')
+    plt.scatter(countryQuantity2, countryQuantity,label='Observations')
 
     #estimate
-    plt.plot(yearsPredict, countryQuantityPredict, 'r--', label='Prediction')
-    plt.scatter(yearsTest,countryQuantityTest,label='Missing values')
+    plt.plot(countryQuantity2Predict, countryQuantityPredict, 'r--', label='Prediction')
+    plt.scatter(countryQuantity2Test,countryQuantityTest,label='Missing values')
 
     #plt.fill(np.concatenate([x, x[::-1]]),
     #         np.concatenate([y_pred - 1.9600 * sigma,
@@ -54,10 +54,10 @@ def plotFinal(years, countryQuantity, yearsTrain, countryQuantityTrain, yearsTes
     #         alpha=1, fc='b', ec='None', label='95% confidence interval')
     
     if regression_type == 'Gaussian': 
-        plt.fill_between(yearsPredict.flat, (countryQuantityPredict.flat-2*sigma), (countryQuantityPredict.flat+2*sigma), 
+        plt.fill_between(countryQuantity2Predict.flat, (countryQuantityPredict.flat-2*sigma), (countryQuantityPredict.flat+2*sigma), 
                      color='green',alpha=0.5,label='95% confidence interval')
     plt.ylabel(ylabel)
-    plt.xlabel('Year')
+    plt.xlabel(xlabel)
     plt.legend()
 
 
@@ -90,45 +90,45 @@ def errorPlot(qty1, error, xlabel, ylabel,regression_type,color):
 
 
 #matrix randomizer
-def randomizer(countryQuantity, years, split):
+def randomizer(countryQuantity, countryQuantity2, split):
     countryQuantity = countryQuantity.tolist()
-    years = years.tolist()
+    countryQuantity2 = countryQuantity2.tolist()
      
     print('Train:Test split is: ',split,':',16-split)
 
     #combine both the lists and randomize while maintaining the mapping 
-    combinedZip = list(zip(years,countryQuantity))
+    combinedZip = list(zip(countryQuantity2,countryQuantity))
     random.shuffle(combinedZip) 
 
     #unzip the combination 
-    years,countryQuantity = zip(*combinedZip) 
+    countryQuantity2,countryQuantity = zip(*combinedZip) 
 
     countryQuantity = list(countryQuantity)
     countryQuantityTrain = countryQuantity[:split]
 
-    years = list(years)
-    yearsTrain = years[:split]
+    countryQuantity2 = list(countryQuantity2)
+    countryQuantity2Train = countryQuantity2[:split]
 
     countryQuantityTest = countryQuantity[split:]
-    yearsTest = years[split:]
+    countryQuantity2Test = countryQuantity2[split:]
 
     #countryQuantity = countryQuantityTrain 
     #years = yearsTrain
 
     countryQuantityTrain = np.asarray(countryQuantityTrain).reshape(-1,1)
-    yearsTrain = np.asarray(yearsTrain).reshape(-1,1)
+    countryQuantity2Train = np.asarray(countryQuantity2Train).reshape(-1,1)
 
     countryQuantityTest = np.asarray(countryQuantityTest).reshape(-1,1)
-    yearsTest = np.asarray(yearsTest).reshape(-1,1)
+    countryQuantity2Test = np.asarray(countryQuantity2Test).reshape(-1,1)
 
-    return countryQuantityTrain, yearsTrain, countryQuantityTest, yearsTest
+    return countryQuantityTrain, countryQuantity2Train, countryQuantityTest, countryQuantity2Test
 
 
 #################GAUSSIAN REGRESSION#################
 # convention followed in relation to scikit documentation 
 
 #def linearRegression(xtrain, ytrain, xtest, ytest, x, y):
-def gaussianRegression(xtrain, ytrain, xtest, ytest, x, y):
+def gaussianRegression(xtrain, ytrain, xtest, ytest, x, y, xname, yname):
     # Instantiate a Gaussian Process model
     lengthScale = np.random.randint(50)
     kernel = C(1.0, (1e-3, 1e3)) * RBF(lengthScale, (1e-2, 1e2))
@@ -138,25 +138,25 @@ def gaussianRegression(xtrain, ytrain, xtest, ytest, x, y):
     
     # Mesh the input space for evaluations of the real function, the prediction and its MSE
     #x = np.atleast_2d(np.linspace(0, 10, 1000)).T
-    yearsPredict = np.array(np.linspace(2000, 2015, 16)).reshape(-1,1)
+    countryQuantity2Predict = np.array(np.linspace(np.min(countryQuantity2.values), np.max(countryQuantity2.values), 16)).reshape(-1,1)
 
-    years = x 
+    countryQuantity2 = x 
     countryQuantity = y 
     
-    yearsTrain = xtrain 
+    countryQuantity2Train = xtrain 
     countryQuantityTrain = ytrain
     
-    yearsTest = xtest
+    countryQuantity2Test = xtest
     countryQuantityTest = ytest 
     
     # Fit to data using Maximum Likelihood Estimation of the parameters
-    gp.fit(yearsTrain, countryQuantityTrain)
+    gp.fit(countryQuantity2Train, countryQuantityTrain)
 
     # Make the prediction on the meshed x-axis (ask for MSE as well)
-    countryQuantityPredict, sigma = gp.predict(yearsPredict, return_std=True)
+    countryQuantityPredict, sigma = gp.predict(countryQuantity2Predict, return_std=True)
 
     #change here 
-    plotFinal(years, countryQuantity, yearsTrain, countryQuantityTrain, yearsTest, countryQuantityTest, yearsPredict, countryQuantityPredict, 'Life Expectancy', sigma, regression_type = 'Gaussian')
+    plotFinal(countryQuantity2, countryQuantity, countryQuantity2Train, countryQuantityTrain, countryQuantity2Test, countryQuantityTest, countryQuantity2Predict, countryQuantityPredict, yname, xname, sigma, regression_type = 'Gaussian')
     return countryQuantityPredict, sigma
 
 
@@ -164,27 +164,30 @@ def gaussianRegression(xtrain, ytrain, xtest, ytest, x, y):
 # convention followed in relation to scikit documentation 
 
 def linearRegression(xtrain, ytrain, xtest, ytest, x, y):
-    years = x 
+   
+    countryQuantity2 = x 
     countryQuantity = y 
     
-    yearsTrain = xtrain 
+   
+    
+    countryQuantity2Train = xtrain 
     countryQuantityTrain = ytrain
     
-    yearsTest = xtest
+    countryQuantity2Test = xtest
     countryQuantityTest = ytest    
     
-    yearsPredict = np.array(np.linspace(2000, 2015, 16)).reshape(-1,1)
+    countryQuantity2Predict = np.array(np.linspace(np.min(countryQuantity2.values), np.max(countryQuantity2.values), 16)).reshape(-1,1)
 
     # # Create linear regression object
     regr = linear_model.LinearRegression()
 
     # Train the model using the training sets
-    regr.fit(yearsTrain, countryQuantityTrain)
+    regr.fit(countryQuantity2Train, countryQuantityTrain)
 
     # Make predictions using the testing set
-    countryQuantityPredictLR = regr.predict(yearsPredict)
+    countryQuantityPredictLR = regr.predict(countryQuantity2Predict)
 
     # Plot outputs
-    plotFinal(years, countryQuantity, yearsTrain, countryQuantityTrain, yearsTest, countryQuantityTest, yearsPredict, countryQuantityPredictLR, 'Life Expectancy',0,regression_type='Linear')
+    plotFinal(countryQuantity2, countryQuantity, countryQuantity2Train, countryQuantityTrain, countryQuantity2Test, countryQuantityTest, countryQuantity2Predict, countryQuantityPredictLR, 'Life Expectancy',0,regression_type='Linear')
     return countryQuantityPredictLR
 

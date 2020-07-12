@@ -1,0 +1,193 @@
+sns.pairplot(df)
+
+
+
+g = sns.PairGrid(df)
+g.map_diag(sns.kdeplot)
+g.map_offdiag(sns.kdeplot, n_levels=6);
+
+
+
+# cleaning the headers of the columns 
+orig_cols = list(df.columns)
+new_cols = []
+for col in orig_cols:
+    new_cols.append(col.strip().replace('  ', ' ').replace(' ', '_').lower())
+df.columns = new_cols
+
+
+
+# rectifying error in the column name 
+df.rename(columns={'thinness_1-19_years':'thinness_10-19_years'}, inplace=True)
+
+
+
+# description of the dataset 
+df.describe().iloc[:, 1:]
+
+
+
+# boxplots to analyse the outliers 
+plt.figure(figsize=(15,10))
+for i, col in enumerate(['adult_mortality', 
+                         'infant_deaths', 
+                         'bmi', 
+                         'under-five_deaths', 
+                         'gdp', 
+                         'population'], start=1):
+
+    plt.subplot(2, 3, i)
+    df.boxplot(col)
+
+
+
+mort_5_percentile = np.percentile(df.adult_mortality.dropna(), 5)
+df.adult_mortality = df.apply(lambda x: np.nan if x.adult_mortality < mort_5_percentile else x.adult_mortality, axis=1)
+df.infant_deaths = df.infant_deaths.replace(0, np.nan)
+df.bmi = df.apply(lambda x: np.nan if (x.bmi < 10 or x.bmi > 50) else x.bmi, axis=1)
+df['under-five_deaths'] = df['under-five_deaths'].replace(0, np.nan)
+
+
+
+
+# certain "outliers" would be replaced with null rather than illogical valeus mort_5_percentile = np.percentile(df.adult_mortality.dropna(), 5)
+df.adult_mortality = df.apply(lambda x: np.nan if x.adult_mortality < mort_5_percentile else x.adult_mortality, axis=1)
+df.infant_deaths = df.infant_deaths.replace(0, np.nan)
+df.bmi = df.apply(lambda x: np.nan if (x.bmi < 10 or x.bmi > 50) else x.bmi, axis=1)
+df['under-five_deaths'] = df['under-five_deaths'].replace(0, np.nan)
+
+
+
+df.info()
+
+
+
+# keeps count of null and percentage of null out of all values 
+def nulls_breakdown(df=df):
+    df_cols = list(df.columns)
+    cols_total_count = len(list(df.columns))
+    cols_count = 0
+    for loc, col in enumerate(df_cols):
+        null_count = df[col].isnull().sum()
+        total_count = df[col].isnull().count()
+        percent_null = round(null_count/total_count*100, 2)
+        if null_count > 0:
+            cols_count += 1
+            print('[iloc = {}] {} has {} null values: {}% null'.format(loc, col, null_count, percent_null))
+    cols_percent_null = round(cols_count/cols_total_count*100, 2)
+    print('Out of {} total columns, {} contain null values; {}% columns contain null values.'.format(cols_total_count, cols_count, cols_percent_null))
+
+
+
+
+nulls_breakdown()
+
+
+
+
+imputed_data = []
+for year in list(df.year.unique()):
+    year_data = df[df.year == year].copy()
+    for col in list(year_data.columns)[3:]:
+        year_data[col] = year_data[col].fillna(year_data[col].dropna().mean()).copy()
+    imputed_data.append(year_data)
+df = pd.concat(imputed_data).copy()
+
+
+
+
+nulls_breakdown(df)
+
+
+
+
+cont_vars = list(df.columns)[3:]
+def outliers_visual(data):
+    plt.figure(figsize=(15, 40))
+    i = 0
+    for col in cont_vars:
+        i += 1
+        plt.subplot(10, 4, i)
+        plt.boxplot(data[col])
+        plt.title('{} boxplot'.format(col))
+        i += 1
+        plt.subplot(10, 4, i)
+        plt.hist(data[col])
+        plt.title('{} histogram'.format(col))
+    plt.show()
+outliers_visual(df)
+
+
+
+
+def outlier_count(col, data=df):
+    print(15*'-' + col + 15*'-')
+    q75, q25 = np.percentile(data[col], [75, 25])
+    iqr = q75 - q25
+    min_val = q25 - (iqr*1.5)
+    max_val = q75 + (iqr*1.5)
+    outlier_count = len(np.where((data[col] > max_val) | (data[col] < min_val))[0])
+    outlier_percent = round(outlier_count/len(data[col])*100, 2)
+    print('Number of outliers: {}'.format(outlier_count))
+    print('Percent of data that is outlier: {}%'.format(outlier_percent))
+
+
+
+
+for col in cont_vars:
+    outlier_count(col)
+
+
+
+for col in cont_vars:
+    outlier_count(col)
+
+
+
+
+def test_wins(col, lower_limit=0, upper_limit=0, show_plot=True):
+    wins_data = winsorize(df[col], limits=(lower_limit, upper_limit))
+    wins_dict[col] = wins_data
+    if show_plot == True:
+        plt.figure(figsize=(15,5))
+        plt.subplot(121)
+        plt.boxplot(df[col])
+        plt.title('original {}'.format(col))
+        plt.subplot(122)
+        plt.boxplot(wins_data)
+        plt.title('wins=({},{}) {}'.format(lower_limit, upper_limit, col))
+        plt.show()
+
+
+
+
+wins_dict = {}
+test_wins(cont_vars[0], lower_limit=.01, show_plot=True)
+test_wins(cont_vars[1], upper_limit=.04, show_plot=False)
+test_wins(cont_vars[2], upper_limit=.05, show_plot=False)
+test_wins(cont_vars[3], upper_limit=.0025, show_plot=False)
+test_wins(cont_vars[4], upper_limit=.135, show_plot=False)
+test_wins(cont_vars[5], lower_limit=.1, show_plot=False)
+test_wins(cont_vars[6], upper_limit=.19, show_plot=False)
+test_wins(cont_vars[7], upper_limit=.05, show_plot=False)
+test_wins(cont_vars[8], lower_limit=.1, show_plot=False)
+test_wins(cont_vars[9], upper_limit=.02, show_plot=False)
+test_wins(cont_vars[10], lower_limit=.105, show_plot=False)
+test_wins(cont_vars[11], upper_limit=.185, show_plot=False)
+test_wins(cont_vars[12], upper_limit=.105, show_plot=False)
+test_wins(cont_vars[13], upper_limit=.07, show_plot=False)
+test_wins(cont_vars[14], upper_limit=.035, show_plot=False)
+test_wins(cont_vars[15], upper_limit=.035, show_plot=False)
+test_wins(cont_vars[16], lower_limit=.05, show_plot=False)
+test_wins(cont_vars[17], lower_limit=.025, upper_limit=.005, show_plot=False)
+
+
+
+
+plt.figure(figsize=(15,5))
+for i, col in enumerate(cont_vars, 1):
+    plt.subplot(2, 9, i)
+    plt.boxplot(wins_dict[col])
+plt.tight_layout()
+plt.show()
+

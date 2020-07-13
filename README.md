@@ -1,4 +1,4 @@
-# bigp
+# Gaussian Process Regression 
 This repository contains code for the Bayesian Inference and Gaussian Process project <br> 
 Following structure has been adopted: <br> 
 (i)  scratch: contains test codes and toy examples<br>

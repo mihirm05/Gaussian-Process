@@ -34,6 +34,7 @@ def plotQuantities(qty1, qty2, xlabel, ylabel, label, title):
     plt.scatter(qty1, qty2, label=label)
     #plt.title(title)
     plt.legend()
+    plt.grid()
     plt.show()
 
 
@@ -43,7 +44,7 @@ def plotFinal(countryQuantity2, countryQuantity, countryQuantity2Train, countryQ
     
     #actual data 
     plt.scatter(countryQuantity2, countryQuantity,label='Observations')
-
+    plt.grid()
     #estimate
     plt.plot(countryQuantity2Predict, countryQuantityPredict, 'r--', label='Prediction')
     plt.scatter(countryQuantity2Test,countryQuantityTest,label='Missing values')
